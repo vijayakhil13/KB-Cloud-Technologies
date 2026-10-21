@@ -1,200 +1,149 @@
 'use client';
 
 import { useState } from 'react';
-import type { FormEvent } from 'react';
-import {
-  MapPinIcon,
-  PhoneIcon,
-  EnvelopeIcon,
-  ClockIcon,
-  PaperAirplaneIcon,
-} from '@heroicons/react/24/outline';
+import { CheckCircleIcon, EnvelopeIcon, PhoneIcon } from '@heroicons/react/24/outline';
+import { ExclamationTriangleIcon } from '@heroicons/react/20/solid';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Badge from '@/components/ui/Badge';
+import Input from '@/components/ui/Input';
 
-const officeDetails = [
-  {
-    icon: MapPinIcon,
-    label: 'Address',
-    lines: ['321 Cloud Street, Tech Park', 'Bengaluru, India - 560001'],
-  },
-  {
-    icon: PhoneIcon,
-    label: 'Phone',
-    lines: ['+91 98765 43210'],
-  },
-  {
-    icon: EnvelopeIcon,
-    label: 'Email',
-    lines: ['support@cloudhost.com'],
-  },
-  {
-    icon: ClockIcon,
-    label: 'Working Hours',
-    lines: ['Mon - Sat: 9:00 AM - 8:00 PM'],
-  },
-];
-
-const inputClasses =
-  'w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-colors';
+type Errors = Partial<Record<'name' | 'email' | 'message', string>>;
+type Status = 'idle' | 'sending' | 'done' | 'error';
 
 export default function Contact() {
-  const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [errors, setErrors] = useState<Errors>({});
+  const [status, setStatus] = useState<Status>('idle');
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmitted(true);
-  }
+  const validate = (): Errors => {
+    const e: Errors = {};
+    if (form.name.trim().length < 2) e.name = 'Please tell us your name.';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Enter a valid email address.';
+    if (form.message.trim().length < 10) e.message = 'A sentence or two helps us help you (10+ characters).';
+    return e;
+  };
+
+  const submit = async (ev: React.FormEvent) => {
+    ev.preventDefault();
+    const e = validate();
+    setErrors(e);
+    if (Object.keys(e).length) return;
+    setStatus('sending');
+    try {
+      await new Promise((r) => setTimeout(r, 700));
+      const prev = JSON.parse(localStorage.getItem('ch-contacts') || '[]') as unknown[];
+      localStorage.setItem('ch-contacts', JSON.stringify([...prev, { ...form, at: new Date().toISOString() }]));
+      setStatus('done');
+    } catch {
+      setStatus('error');
+    }
+  };
+
+  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   return (
-    <section id="contact" className="scroll-mt-16 bg-page py-16 lg:py-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900">
-            Contact Us
+    <section id="contact" className="scroll-mt-20 bg-surface-2/60 py-20 sm:py-28">
+      <div className="mx-auto grid max-w-6xl gap-10 px-5 sm:px-8 lg:grid-cols-2 lg:gap-16">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[.14em] text-primary-ink">Contact</p>
+          <h2 className="mt-3 font-display text-3xl font-medium tracking-tight text-ink sm:text-4xl">
+            Tell us what you are building
           </h2>
-          <p className="mt-3 text-base text-gray-500">
-            Let's talk about your needs
+          <p className="mt-4 max-w-md leading-relaxed text-ink-soft">
+            Not sure which size fits? Share a few details and one of our engineers will suggest a setup, with no sales
+            pitch attached.
           </p>
+          <ul className="mt-8 space-y-4 text-ink">
+            <li className="flex items-center gap-3">
+              <EnvelopeIcon className="h-5 w-5 text-primary" width={20} height={20} aria-hidden="true" />
+              <a href="mailto:support@kbcloudtechnologies.com" className="underline-offset-4 hover:underline">
+                support@kbcloudtechnologies.com
+              </a>
+            </li>
+            <li className="flex items-center gap-3">
+              <PhoneIcon className="h-5 w-5 text-primary" width={20} height={20} aria-hidden="true" />
+              <a href="tel:+919876543210" className="underline-offset-4 hover:underline">
+                +91 98765 43210
+              </a>
+            </li>
+          </ul>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-          {/* Form */}
-          <div className="lg:col-span-3 rounded-2xl bg-white border border-gray-100 shadow-sm p-6 sm:p-8">
-            {submitted ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-500">
-                  <PaperAirplaneIcon className="h-7 w-7" />
-                </span>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">
-                  Message sent!
-                </h3>
-                <p className="mt-2 text-sm text-gray-500 max-w-sm">
-                  Thank you for reaching out. Our team will get back to you
-                  within one business day.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setSubmitted(false)}
-                  className="mt-6 rounded-lg border border-gray-200 px-5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Send another message
-                </button>
+        <Card padding="lg">
+          {status === 'done' ? (
+            <div role="status" className="py-8 text-center">
+              <CheckCircleIcon className="mx-auto h-12 w-12 text-ok" width={48} height={48} aria-hidden="true" />
+              <h3 className="mt-4 font-display text-2xl font-medium text-ink">Thanks, we reply within one working day</h3>
+              <p className="mt-2 text-ink-soft">Your note is with the team. Keep an eye on your inbox.</p>
+              <Button
+                variant="secondary"
+                className="mt-6"
+                onClick={() => {
+                  setForm({ name: '', email: '', message: '' });
+                  setStatus('idle');
+                }}
+              >
+                Send another message
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={submit} noValidate className="space-y-5" aria-busy={status === 'sending'}>
+              <Input
+                label="Your name"
+                name="name"
+                autoComplete="name"
+                value={form.name}
+                onChange={(e) => set('name')(e.target.value)}
+                error={errors.name}
+              />
+              <Input
+                label="Email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={form.email}
+                onChange={(e) => set('email')(e.target.value)}
+                error={errors.email}
+              />
+              <div>
+                <label htmlFor="contact-message" className="mb-1.5 block text-sm font-medium text-ink">
+                  Message
+                </label>
+                <textarea
+                  id="contact-message"
+                  name="message"
+                  rows={4}
+                  value={form.message}
+                  onChange={(e) => set('message')(e.target.value)}
+                  aria-invalid={errors.message ? true : undefined}
+                  aria-describedby={errors.message ? 'contact-message-err' : undefined}
+                  className={`w-full rounded-lg border bg-surface px-3.5 py-3 text-ink placeholder:text-ink-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30 ${
+                    errors.message ? 'border-crit' : 'border-border'
+                  }`}
+                />
+                {errors.message && (
+                  <p id="contact-message-err" className="mt-1.5 text-sm text-crit">
+                    {errors.message}
+                  </p>
+                )}
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label
-                      htmlFor="contact-name"
-                      className="block text-sm font-medium text-gray-700 mb-1.5"
-                    >
-                      Name
-                    </label>
-                    <input
-                      id="contact-name"
-                      name="name"
-                      type="text"
-                      required
-                      placeholder="Your name"
-                      className={inputClasses}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="contact-email"
-                      className="block text-sm font-medium text-gray-700 mb-1.5"
-                    >
-                      Email
-                    </label>
-                    <input
-                      id="contact-email"
-                      name="email"
-                      type="email"
-                      required
-                      placeholder="you@example.com"
-                      className={inputClasses}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="contact-subject"
-                    className="block text-sm font-medium text-gray-700 mb-1.5"
+              {status === 'error' && (
+                <div role="alert">
+                  <Badge
+                    tone="crit"
+                    icon={<ExclamationTriangleIcon className="h-4 w-4" width={16} height={16} aria-hidden="true" />}
                   >
-                    Subject
-                  </label>
-                  <select
-                    id="contact-subject"
-                    name="subject"
-                    required
-                    defaultValue=""
-                    className={inputClasses}
-                  >
-                    <option value="" disabled>
-                      Select topic
-                    </option>
-                    <option value="sales">Sales & Pricing</option>
-                    <option value="technical">Technical Support</option>
-                    <option value="migration">Server Migration</option>
-                    <option value="billing">Billing Question</option>
-                    <option value="other">Other</option>
-                  </select>
+                    Something went wrong. Please try again.
+                  </Badge>
                 </div>
-
-                <div>
-                  <label
-                    htmlFor="contact-message"
-                    className="block text-sm font-medium text-gray-700 mb-1.5"
-                  >
-                    Message
-                  </label>
-                  <textarea
-                    id="contact-message"
-                    name="message"
-                    required
-                    rows={5}
-                    placeholder="Write your message..."
-                    className={`${inputClasses} resize-none`}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto rounded-lg bg-brand px-8 py-3 text-sm font-semibold text-white hover:bg-brand-dark transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
-                >
-                  Send Message
-                </button>
-              </form>
-            )}
-          </div>
-
-          {/* Office card */}
-          <div className="lg:col-span-2 rounded-2xl bg-navy shadow-sm p-6 sm:p-8">
-            <h3 className="text-lg font-bold text-white">Our Office</h3>
-            <ul className="mt-6 space-y-5">
-              {officeDetails.map((item) => (
-                <li key={item.label} className="flex gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 text-brand">
-                    <item.icon className="h-5 w-5" />
-                  </span>
-                  <span>
-                    <span className="block text-sm font-semibold text-white">
-                      {item.label}
-                    </span>
-                    {item.lines.map((line) => (
-                      <span
-                        key={line}
-                        className="block text-sm text-gray-400 mt-0.5"
-                      >
-                        {line}
-                      </span>
-                    ))}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+              )}
+              <Button type="submit" loading={status === 'sending'} className="w-full sm:w-auto">
+                {status === 'error' ? 'Retry' : 'Send message'}
+              </Button>
+            </form>
+          )}
+        </Card>
       </div>
     </section>
   );

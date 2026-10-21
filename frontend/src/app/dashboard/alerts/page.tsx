@@ -1,126 +1,201 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import AlertCard from '@/components/alerts/AlertCard';
 import PageHeader from '@/components/dashboard/PageHeader';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Chip from '@/components/ui/Chip';
+import Dialog from '@/components/ui/Dialog';
+import EmptyState from '@/components/ui/EmptyState';
+import Skeleton from '@/components/ui/Skeleton';
+import { useToast } from '@/components/ui/Toast';
+import { useFleet } from '@/lib/mock/store';
+import type { Alert, AlertSeverity, AlertState, SnoozeDuration } from '@/lib/mock/types';
 
-type AlertStatus = 'Critical' | 'Warning' | 'Resolved';
+type StateFilter = 'all' | AlertState;
+type SeverityFilter = 'all' | Exclude<AlertSeverity, 'ok'>;
+interface Filter {
+  state: StateFilter;
+  severity: SeverityFilter;
+}
 
-type AlertRow = {
-  id: number;
-  time: string;
-  server: string;
-  type: string;
-  message: string;
-  status: AlertStatus;
-};
-
-/**
- * Placeholder data — swap with the alerts API later.
- */
-const alerts: AlertRow[] = [
-  {
-    id: 1,
-    time: '2026-06-10 14:25',
-    server: 'Win-Server-01',
-    type: 'High CPU',
-    message: 'CPU usage above 90% for 5 minutes',
-    status: 'Critical',
-  },
-  {
-    id: 2,
-    time: '2026-06-10 13:40',
-    server: 'Linux-Server-03',
-    type: 'High Disk',
-    message: 'Disk usage above 85%',
-    status: 'Warning',
-  },
-  {
-    id: 3,
-    time: '2026-06-10 12:15',
-    server: 'Host Server',
-    type: 'High RAM',
-    message: 'Memory usage above 80%',
-    status: 'Warning',
-  },
-  {
-    id: 4,
-    time: '2026-06-10 11:10',
-    server: 'Win-Server-01',
-    type: 'High CPU',
-    message: 'CPU usage reached 92%',
-    status: 'Critical',
-  },
-  {
-    id: 5,
-    time: '2026-06-10 10:45',
-    server: 'Win-Server-01',
-    type: 'Recovered',
-    message: 'CPU usage back to normal',
-    status: 'Resolved',
-  },
+const FILTER_KEY = 'ch-alert-filter';
+const STATE_CHIPS: { id: StateFilter; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'open', label: 'Open' },
+  { id: 'acknowledged', label: 'Acknowledged' },
+  { id: 'snoozed', label: 'Snoozed' },
+  { id: 'resolved', label: 'Resolved' },
+];
+const SEVERITY_CHIPS: { id: Exclude<SeverityFilter, 'all'>; label: string }[] = [
+  { id: 'crit', label: 'Critical' },
+  { id: 'warn', label: 'Warning' },
 ];
 
-const statusChip: Record<AlertStatus, string> = {
-  Critical: 'bg-red-50 text-red-600',
-  Warning: 'bg-amber-50 text-amber-600',
-  Resolved: 'bg-green-50 text-green-600',
-};
+const matches = (a: Alert, f: Filter) =>
+  (f.state === 'all' || a.state === f.state) && (f.severity === 'all' || a.severity === f.severity);
 
 export default function AlertsPage() {
+  const { servers, alerts, status, reload, ackAlert, snoozeAlert, resolveAlert, reopenAlert, resolveAllAcknowledged } = useFleet();
+  const toast = useToast();
+  const [filter, setFilter] = useState<Filter>({ state: 'open', severity: 'all' });
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [confirmAll, setConfirmAll] = useState(false);
+  const listHeading = useRef<HTMLHeadingElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(FILTER_KEY) ?? 'null') as Partial<Filter> | null;
+      if (saved?.state) setFilter({ state: saved.state, severity: saved.severity ?? 'all' });
+    } catch {
+      /* ignore a corrupt filter */
+    }
+  }, []);
+
+  const choose = (patch: Partial<Filter>) => {
+    const next = { ...filter, ...patch };
+    setFilter(next);
+    try {
+      localStorage.setItem(FILTER_KEY, JSON.stringify(next));
+    } catch {
+      /* storage unavailable */
+    }
+  };
+
+  const serverName = (id: string) => servers.find((s) => s.id === id)?.name ?? 'Unknown server';
+  const count = (f: Filter) => alerts.filter((a) => matches(a, f)).length;
+  const visible = alerts.filter((a) => matches(a, filter)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const ackCount = alerts.filter((a) => a.state === 'acknowledged').length;
+
+  const act = async (a: Alert, run: () => Promise<void>, ok: string, undo = false) => {
+    setBusyId(a.id);
+    try {
+      await run();
+      toast({
+        tone: 'ok',
+        title: ok,
+        duration: undo ? 5000 : 4000,
+        action: undo
+          ? { label: 'Undo', onClick: () => void reopenAlert(a.id) }
+          : undefined,
+      });
+    } catch (e) {
+      toast({ tone: 'crit', title: 'Could not update alert', description: e instanceof Error ? e.message : 'Please try again.' });
+    } finally {
+      setBusyId(null);
+      listHeading.current?.focus();
+    }
+  };
+
+  const emptyTitle = filter.state === 'open' ? 'All quiet. Nothing needs you right now.' : `No ${filter.state === 'all' ? '' : `${filter.state} `}alerts.`;
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Alerts"
-        subtitle="Recent alerts across your servers"
+        subtitle="Acknowledge, snooze or resolve what your servers report."
+        actions={
+          <Button variant="secondary" disabled={ackCount === 0} onClick={() => setConfirmAll(true)}>
+            Resolve all acknowledged
+          </Button>
+        }
       />
 
-      <div className="rounded-2xl border border-gray-100 bg-white shadow-sm">
-        <div className="flex items-center justify-between px-6 pt-6">
-          <h2 className="text-base font-semibold text-gray-900">
-            Alert History
-          </h2>
-          <button
-            type="button"
-            className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50"
-          >
-            Mark all as read
-          </button>
+      <div className="space-y-3">
+        <div role="group" aria-label="Filter alerts by state" className="-mx-5 flex snap-x gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+          {STATE_CHIPS.map((c) => (
+            <Chip
+              key={c.id}
+              pressed={filter.state === c.id}
+              count={count({ state: c.id, severity: filter.severity })}
+              onClick={() => choose({ state: c.id })}
+              className="snap-start"
+            >
+              {c.label}
+            </Chip>
+          ))}
         </div>
-
-        <div className="overflow-x-auto px-6 pb-6 pt-4">
-          <table className="w-full min-w-[640px] text-left text-sm">
-            <thead>
-              <tr className="text-xs uppercase tracking-wide text-gray-400">
-                <th className="pb-3 font-medium">Time</th>
-                <th className="pb-3 font-medium">Server</th>
-                <th className="pb-3 font-medium">Type</th>
-                <th className="pb-3 font-medium">Message</th>
-                <th className="pb-3 text-right font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {alerts.map((alert) => (
-                <tr key={alert.id} className="hover:bg-gray-50">
-                  <td className="whitespace-nowrap py-3.5 text-gray-500">
-                    {alert.time}
-                  </td>
-                  <td className="whitespace-nowrap py-3.5 font-medium text-gray-900">
-                    {alert.server}
-                  </td>
-                  <td className="whitespace-nowrap py-3.5 text-gray-700">
-                    {alert.type}
-                  </td>
-                  <td className="py-3.5 text-gray-500">{alert.message}</td>
-                  <td className="whitespace-nowrap py-3.5 text-right">
-                    <span
-                      className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${statusChip[alert.status]}`}
-                    >
-                      {alert.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div role="group" aria-label="Filter alerts by severity" className="flex flex-wrap gap-2">
+          {SEVERITY_CHIPS.map((c) => (
+            <Chip
+              key={c.id}
+              pressed={filter.severity === c.id}
+              count={count({ state: filter.state, severity: c.id })}
+              onClick={() => choose({ severity: filter.severity === c.id ? 'all' : c.id })}
+            >
+              {c.label}
+            </Chip>
+          ))}
         </div>
       </div>
+
+      <h2 ref={listHeading} tabIndex={-1} className="sr-only focus:outline-none">
+        Alert list, {visible.length} shown
+      </h2>
+
+      {status === 'loading' && (
+        <div aria-busy="true" aria-label="Loading alerts" className="space-y-4">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-36 rounded-card" />
+          ))}
+        </div>
+      )}
+
+      {status === 'error' && (
+        <Card role="alert" className="flex flex-wrap items-center justify-between gap-4 !border-crit/30 !bg-crit-soft">
+          <p className="font-medium text-crit">Could not load your alerts</p>
+          <Button variant="secondary" onClick={reload}>
+            Retry
+          </Button>
+        </Card>
+      )}
+
+      {status === 'ready' && visible.length === 0 && <EmptyState title={emptyTitle} illustration="clouds" />}
+
+      {status === 'ready' && visible.length > 0 && (
+        <ul className="space-y-4">
+          {visible.map((a) => (
+            <AlertCard
+              key={a.id}
+              alert={a}
+              serverName={serverName(a.serverId)}
+              busy={busyId === a.id}
+              onAck={() => void act(a, () => ackAlert(a.id), 'Alert acknowledged')}
+              onSnooze={(d: SnoozeDuration) =>
+                void act(a, () => snoozeAlert(a.id, d), `Alert snoozed for ${d === '1h' ? '1 hour' : '24 hours'}`)
+              }
+              onResolve={() => void act(a, () => resolveAlert(a.id), 'Alert resolved', true)}
+            />
+          ))}
+        </ul>
+      )}
+
+      <Dialog
+        open={confirmAll}
+        onClose={() => setConfirmAll(false)}
+        title="Resolve all acknowledged alerts?"
+        description={`${ackCount} alert${ackCount === 1 ? '' : 's'} will move to Resolved.`}
+        initialFocus={cancelRef}
+        footer={
+          <>
+            <Button ref={cancelRef as React.Ref<HTMLButtonElement>} variant="secondary" onClick={() => setConfirmAll(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                setConfirmAll(false);
+                const n = await resolveAllAcknowledged();
+                toast({ tone: 'ok', title: `${n} alert${n === 1 ? '' : 's'} resolved` });
+                listHeading.current?.focus();
+              }}
+            >
+              Resolve all
+            </Button>
+          </>
+        }
+      />
     </div>
   );
 }

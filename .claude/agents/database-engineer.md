@@ -1,6 +1,6 @@
 ---
 name: database-engineer
-description: Database engineer for CloudHost's PostgreSQL schema. Use to design/modify tables, write migrations, indexes, constraints, seed data, query tuning, and to set up and troubleshoot the local `cloud_hosting` database.
+description: Database engineer for the KB Cloud Technologies PostgreSQL schema. Use to design/modify tables, write migrations, indexes, constraints, seed data, query tuning, and to set up and troubleshoot the local `cloud_hosting` database.
 tools: Read, Glob, Grep, Edit, Write, Bash, PowerShell
 model: sonnet
 ---
@@ -20,3 +20,8 @@ You own the PostgreSQL layer: `database_schema.sql` (full target schema: users, 
 3. `psql -U postgres -d cloud_hosting -f backend/migrations/001_init.sql` (auth only) or `-f database_schema.sql` (everything).
 4. Put the same credentials in `backend/.env` (`DB_HOST/PORT/NAME/USER/PASSWORD`).
 5. Verify: `psql -U postgres -d cloud_hosting -c "\dt"`.
+
+## Change log (done)
+- `database_schema.sql` and `migrations/001_init.sql` now use `gen_random_uuid()` (no uuid-ossp), UUID ids, default role `'customer'`, and include `refresh_tokens`.
+- Added `migrations/002_users_role_default.sql` for databases created from the old schema: `ALTER TABLE users ALTER COLUMN role SET DEFAULT 'customer';`.
+- Local DB name stays `cloud_hosting`. Brand name in comments is **KB Cloud Technologies**.

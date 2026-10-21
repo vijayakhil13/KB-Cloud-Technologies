@@ -1,79 +1,67 @@
 'use client';
 
-import { useState } from 'react';
+import { Disclosure } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
 const faqs = [
   {
-    question: 'How do I access my server?',
-    answer:
-      'Once your server is provisioned, you can access it from any device using a web browser or a standard remote desktop client. Simply log in to your CloudHost dashboard, select your server and click Connect — your remote session starts instantly.',
+    q: 'How does billing work?',
+    a: 'You pay monthly in rupees, based on the vCPU, memory and storage you choose, plus a flat licence fee for Windows. There are no setup fees, and the calculator above is the same formula we invoice with.',
   },
   {
-    question: 'Can I upgrade my plan?',
-    answer:
-      'Yes. You can upgrade or downgrade your plan at any time from your dashboard. Upgrades take effect within minutes with no data loss, and billing is prorated so you only pay for what you use.',
+    q: 'Which regions can I deploy in?',
+    a: 'Mumbai, Chennai and Delhi. All three keep your data inside India. Pick the one closest to your users when you deploy.',
   },
   {
-    question: 'Do you provide backups?',
-    answer:
-      'Every plan includes automated backups. Starter plans get basic weekly backups, while Business and Advanced plans include daily and advanced backups with one-click restore. You can also download backup snapshots anytime.',
+    q: 'Are my servers backed up?',
+    a: 'Yes. Every server gets automatic daily backups that we keep for seven days, and you can restore from the dashboard or ask support to do it for you.',
   },
   {
-    question: 'What applications can I run?',
-    answer:
-      'You can run virtually any Windows or Linux application — including Tally Prime, ERP systems, accounting software, web servers, databases and custom business applications. Our team will help you set up your software at no extra cost.',
+    q: 'Can I resize a server later?',
+    a: 'Absolutely. Scale cores, memory or disk up as you grow. Your monthly price updates to match from the next billing day.',
   },
   {
-    question: 'Is my data secure?',
-    answer:
-      'Absolutely. All data is encrypted in transit and at rest, our data centers are ISO 27001 certified, and we perform regular security audits and 24/7 monitoring to keep your business data protected.',
+    q: 'What is your refund policy?',
+    a: 'If KB Cloud Technologies is not right for you, cancel within 7 days of your first payment and we will refund it in full. After that you can cancel anytime and are billed only up to the end of the month.',
+  },
+  {
+    q: 'How do Windows licences work?',
+    a: 'Windows servers include a Windows Server licence for a flat Rs 800 per month. Linux servers have no licence fee. You can pick either when you build your server.',
   },
 ];
 
 export default function FaqAccordion() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
-
   return (
-    <div className="mt-12 max-w-3xl mx-auto">
-      <h3 className="text-2xl font-bold tracking-tight text-gray-900 text-center">
-        Frequently Asked Questions
-      </h3>
-
-      <div className="mt-6 space-y-3">
-        {faqs.map((faq, index) => {
-          const isOpen = openIndex === index;
-          return (
-            <div
-              key={faq.question}
-              className="rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden"
-            >
-              <button
-                type="button"
-                onClick={() => setOpenIndex(isOpen ? null : index)}
-                className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
-                aria-expanded={isOpen}
-              >
-                <span className="text-sm font-semibold text-gray-900">
-                  {faq.question}
-                </span>
-                <ChevronDownIcon
-                  className={`h-5 w-5 shrink-0 text-gray-400 transition-transform ${
-                    isOpen ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
-              {isOpen && (
-                <div className="px-5 pb-5 -mt-1">
-                  <p className="text-sm text-gray-500 leading-relaxed">
-                    {faq.answer}
-                  </p>
-                </div>
+    <section id="faq" className="scroll-mt-20 py-20 sm:py-28">
+      <div className="mx-auto grid max-w-6xl gap-10 px-5 sm:px-8 lg:grid-cols-[1fr_1.6fr]">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[.14em] text-primary-ink">FAQ</p>
+          <h2 className="mt-3 font-display text-3xl font-medium tracking-tight text-ink sm:text-4xl">
+            Questions people ask first
+          </h2>
+          <p className="mt-4 text-ink-soft">Not here? Write to us below and a person will reply.</p>
+        </div>
+        <div className="divide-y divide-border rounded-card border border-border bg-surface px-5 shadow-soft sm:px-8">
+          {faqs.map((f) => (
+            <Disclosure key={f.q} as="div">
+              {({ open }) => (
+                <>
+                  <Disclosure.Button className="flex min-h-14 w-full items-center justify-between gap-4 py-4 text-left font-medium text-ink">
+                    {f.q}
+                    <ChevronDownIcon
+                      className={`h-5 w-5 shrink-0 text-ink-muted transition-transform ${open ? 'rotate-180' : ''}`}
+                      width={20}
+                      height={20}
+                      aria-hidden="true"
+                    />
+                  </Disclosure.Button>
+                  <Disclosure.Panel className="pb-5 leading-relaxed text-ink-soft">{f.a}</Disclosure.Panel>
+                </>
               )}
-            </div>
-          );
-        })}
+            </Disclosure>
+          ))}
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

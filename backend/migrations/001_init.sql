@@ -1,4 +1,4 @@
--- Auth tables for the CloudHost platform (subset of ../database_schema.sql).
+-- Auth tables for the KB Cloud Technologies platform (subset of ../database_schema.sql).
 -- Run with: psql -U postgres -d cloud_hosting -f migrations/001_init.sql
 -- (Create the database first: CREATE DATABASE cloud_hosting;)
 -- Uses gen_random_uuid() (built into PostgreSQL 13+; no extension needed).

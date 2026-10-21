@@ -1,4 +1,4 @@
-# Cloud Hosting Platform Setup Guide
+# KB Cloud Technologiesing Platform Setup Guide
 
 ## What Has Been Completed
 

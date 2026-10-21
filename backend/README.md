@@ -1,4 +1,4 @@
-# Cloud Hosting Platform Backend
+# KB Cloud Technologiesing Platform Backend
 
 This is the backend service for the cloud hosting platform, providing authentication and API services.
 

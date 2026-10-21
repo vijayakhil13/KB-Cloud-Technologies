@@ -119,3 +119,12 @@ This file tracks the planning, performing, and completed tasks for each agent.
 ### Performed
 - [x] API contract initial draft completed
 - [ ] (Additional completed tasks will be added here)
+---
+## Update log (current agents: `.claude/agents/{ui-ux-designer,frontend-developer,backend-engineer,database-engineer}.md`)
+Each agent file has a "Change log (done)" section with details. Summary:
+- [x] Build fixes: postcss config, `'use client'`, type error, winston, errorHandler, `/me`, schema/migration alignment, role default (+ migration 002)
+- [x] Rebrand CloudHost -> KB Cloud Technologies (docs, agents, SQL comments; frontend during redesign)
+- [x] Design spec `frontend/DESIGN.md` + new calm theme tokens (light/dark)
+- [x] Frontend redesign: UI kit, landing + price calculator, auth, fleet dashboard, deploy wizard, alerts, Ctrl+K palette (tsc + build pass)
+- [ ] Real pricing values for the calculator (`frontend/src/lib/pricing.ts`)
+- Note: the older `backend.md`, `database.md`, `senior-frontend.md` and their subfolders came back from the remote merge; they have no agent frontmatter, so the four files above are the active ones.

@@ -1,105 +1,86 @@
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import type { Metadata } from 'next';
 import {
   BookOpenIcon,
   ChatBubbleLeftRightIcon,
+  ChevronDownIcon,
   EnvelopeIcon,
   TicketIcon,
 } from '@heroicons/react/24/outline';
 import PageHeader from '@/components/dashboard/PageHeader';
+import Card from '@/components/ui/Card';
 
-/**
- * Placeholder content — wire up to the support API later.
- */
+export const metadata: Metadata = { title: 'Support' };
+
 const options = [
-  {
-    title: 'Submit a Ticket',
-    caption: 'Raise a support request',
-    icon: TicketIcon,
-  },
-  {
-    title: 'Knowledge Base',
-    caption: 'Find helpful guides',
-    icon: BookOpenIcon,
-  },
-  {
-    title: 'Live Chat',
-    caption: 'Chat with our team',
-    icon: ChatBubbleLeftRightIcon,
-  },
-  {
-    title: 'Contact Us',
-    caption: 'Get in touch',
-    icon: EnvelopeIcon,
-  },
+  { title: 'Submit a ticket', caption: 'Raise a support request', icon: TicketIcon },
+  { title: 'Knowledge base', caption: 'Find helpful guides', icon: BookOpenIcon },
+  { title: 'Live chat', caption: 'Chat with our team', icon: ChatBubbleLeftRightIcon },
+  { title: 'Contact us', caption: 'Get in touch', icon: EnvelopeIcon },
 ];
 
 const faqs = [
   {
     question: 'How do I access my server?',
     answer:
-      'Open the My Server page and click Connect. A secure remote desktop (RDP) session will start from your browser — no client install needed.',
+      'Open Servers, pick your server and use its IP address. Windows servers accept Remote Desktop (RDP); Linux servers accept SSH.',
   },
   {
-    question: 'Can I upgrade my plan?',
+    question: 'Can I resize a server?',
     answer:
-      'Yes. From the My Account page you can move to a higher plan at any time; the difference is prorated for the rest of the billing cycle.',
+      'Yes. Deploy a new size, move your data across and stop the old server. You only pay for what is running.',
   },
   {
     question: 'Do you provide backups?',
-    answer:
-      'Daily automatic backups are included on Growth plans and above. You can also trigger an on-demand backup from the My Server page.',
+    answer: 'Daily snapshots are stored in your server region. You will see a confirmation in Alerts after each one.',
   },
   {
-    question: 'What applications can I run?',
-    answer:
-      'Any standard Windows or Linux workload — Tally, ERP, accounting tools, web servers and databases are all commonly hosted on CloudHost.',
+    question: 'What can I run on KB Cloud Technologies?',
+    answer: 'Any standard Windows or Linux workload: web servers, databases, Tally, ERP and accounting tools.',
   },
 ];
 
 export default function SupportPage() {
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Support"
-        subtitle="We are here to help you"
-      />
+      <PageHeader title="Support" subtitle="Real people, available 24/7." />
 
-      {/* Support channels */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {options.map((option) => (
-          <button
-            key={option.title}
-            type="button"
-            className="rounded-2xl border border-gray-100 bg-white p-6 text-left shadow-sm transition-shadow hover:shadow-md"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#1a6ef5]">
-              <option.icon className="h-5 w-5" />
-            </span>
-            <p className="mt-4 text-sm font-semibold text-gray-900">
-              {option.title}
-            </p>
-            <p className="mt-1 text-sm text-gray-500">{option.caption}</p>
-          </button>
+      <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {options.map((o) => (
+          <li key={o.title}>
+            <Card as="div" interactive className="h-full">
+              <button type="button" className="flex w-full flex-col text-left">
+                <span className="grid h-11 w-11 place-items-center rounded-lg bg-primary-soft text-primary-ink">
+                  <o.icon className="h-5 w-5" width={20} height={20} aria-hidden="true" />
+                </span>
+                <span className="mt-4 font-medium text-ink">{o.title}</span>
+                <span className="mt-1 text-sm text-ink-soft">{o.caption}</span>
+              </button>
+            </Card>
+          </li>
         ))}
-      </div>
+      </ul>
 
-      {/* FAQ */}
-      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-        <h2 className="text-base font-semibold text-gray-900">
-          Frequently Asked Questions
+      <Card as="section" aria-labelledby="faq">
+        <h2 id="faq" className="font-display text-xl font-medium text-ink">
+          Frequently asked questions
         </h2>
-        <div className="mt-4 divide-y divide-gray-100">
-          {faqs.map((faq) => (
-            <details key={faq.question} className="group py-4">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium text-gray-900 [&::-webkit-details-marker]:hidden">
-                {faq.question}
-                <ChevronDownIcon className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-180" />
+        <div className="mt-2 divide-y divide-border">
+          {faqs.map((f) => (
+            <details key={f.question} className="group py-1">
+              <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 font-medium text-ink [&::-webkit-details-marker]:hidden">
+                {f.question}
+                <ChevronDownIcon
+                  className="h-5 w-5 shrink-0 text-ink-muted transition-transform group-open:rotate-180"
+                  width={20}
+                  height={20}
+                  aria-hidden="true"
+                />
               </summary>
-              <p className="mt-2 text-sm text-gray-500">{faq.answer}</p>
+              <p className="pb-4 text-ink-soft">{f.answer}</p>
             </details>
           ))}
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

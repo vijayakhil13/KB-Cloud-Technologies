@@ -1,4 +1,4 @@
-# Cloud Hosting Platform Frontend Setup Guide
+# KB Cloud Technologiesing Platform Frontend Setup Guide
 
 This guide provides instructions for setting up the frontend application for the cloud hosting platform using React/Next.js with TypeScript, as specified in the Senior Frontend Agent's planning documents.
 

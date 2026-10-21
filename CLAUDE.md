@@ -1,4 +1,4 @@
-# CloudHost – cloud server hosting platform
+# KB Cloud Technologies – cloud server hosting platform
 
 Monorepo: `frontend/` (Next.js 13 + Tailwind, port 3000), `backend/` (Express + PostgreSQL, port 5000), `database_schema.sql` + `backend/migrations/` (PostgreSQL).
 

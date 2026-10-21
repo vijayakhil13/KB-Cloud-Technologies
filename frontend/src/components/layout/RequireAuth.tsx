@@ -1,8 +1,15 @@
 'use client';
 
-import { useRequireAuth } from '@/lib/auth/useAuth';
+import { createContext, useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useRequireAuth } from '@/lib/auth/useAuth';
+import type { User } from '@/lib/api/authService';
+import { Spinner } from '@/components/ui/Button';
+
+const UserContext = createContext<User | null>(null);
+
+/** The signed-in user, fetched once by RequireAuth via useAuth. */
+export const useCurrentUser = (): User | null => useContext(UserContext);
 
 export const RequireAuth = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useRequireAuth();
@@ -16,14 +23,10 @@ export const RequireAuth = ({ children }: { children: React.ReactNode }) => {
 
   if (loading) {
     return (
-      <div
-        className="flex min-h-screen items-center justify-center bg-page"
-        role="status"
-        aria-live="polite"
-      >
-        <div className="flex flex-col items-center gap-3 text-sm text-gray-500">
-          <span className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-brand" />
-          Loading your dashboard…
+      <div className="flex min-h-screen items-center justify-center bg-bg" role="status" aria-live="polite">
+        <div className="flex flex-col items-center gap-3 text-sm text-ink-soft">
+          <Spinner className="h-8 w-8 text-primary" />
+          Loading your dashboard...
         </div>
       </div>
     );
@@ -33,5 +36,5 @@ export const RequireAuth = ({ children }: { children: React.ReactNode }) => {
     return null; // Redirect handled in useEffect
   }
 
-  return <>{children}</>;
+  return <UserContext.Provider value={user}>{children}</UserContext.Provider>;
 };

@@ -1,121 +1,61 @@
-import Link from 'next/link';
-import {
-  CommandLineIcon,
-  ComputerDesktopIcon,
-  BuildingOffice2Icon,
-  ShieldCheckIcon,
-} from '@heroicons/react/24/outline';
+import { BoltIcon, CurrencyRupeeIcon, HeartIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import Button from '@/components/ui/Button';
+import Illustration from '@/components/ui/Illustration';
 
-const badges = [
-  {
-    icon: CommandLineIcon,
-    title: 'Windows & Linux Servers',
-    subtitle: 'Ready in minutes',
-  },
-  {
-    icon: ComputerDesktopIcon,
-    title: 'Remote Desktop',
-    subtitle: 'Access from anywhere',
-  },
-  {
-    icon: BuildingOffice2Icon,
-    title: 'Business Applications',
-    subtitle: 'Tally, ERP and more',
-  },
-  {
-    icon: ShieldCheckIcon,
-    title: 'Secure & Reliable',
-    subtitle: 'Your data, our priority',
-  },
+const proof = [
+  { icon: BoltIcon, text: 'Ready in about a minute' },
+  { icon: CurrencyRupeeIcon, text: 'Priced per vCPU, GB and disk' },
+  { icon: HeartIcon, text: 'A real person answers' },
 ];
 
 export default function Hero() {
   return (
-    <section
-      id="about"
-      className="relative overflow-hidden bg-navy"
-    >
-      {/* Subtle gradient / texture */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-br from-navy-light via-navy to-navy-lighter"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 opacity-40 bg-[radial-gradient(ellipse_at_top_right,_rgba(26,110,245,0.35),_transparent_55%),radial-gradient(ellipse_at_bottom_left,_rgba(26,110,245,0.18),_transparent_50%)]"
-      />
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
-          <div className="max-w-xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-navy-border bg-white/5 px-3 py-1 text-xs font-medium text-brand-100">
-              <span className="h-1.5 w-1.5 rounded-full bg-green-400" aria-hidden="true" />
-              99.9% uptime on every plan
-            </span>
-            <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.1]">
-              Your Own Cloud.{' '}
-              <span className="bg-gradient-to-r from-primary-300 to-brand bg-clip-text text-transparent">
-                Simple. Secure. Reliable.
-              </span>
-            </h1>
-            <p className="mt-5 text-lg text-gray-300 leading-relaxed">
-              Windows & Linux cloud servers, remote desktops and business
-              application hosting for your growing business.
-            </p>
-            <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-4">
-              <Link
-                href="/auth/register"
-                className="rounded-lg bg-brand px-7 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-brand/30 hover:bg-brand-dark transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-navy"
-              >
-                Get Started
-              </Link>
-              <Link
-                href="#pricing"
-                className="rounded-lg border border-navy-border bg-white/5 px-7 py-3 text-center text-sm font-semibold text-white hover:bg-white/10 hover:border-gray-500 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-navy"
-              >
-                View Plans
-              </Link>
-            </div>
+    <section className="bg-[radial-gradient(60%_50%_at_80%_0%,rgb(var(--accent-soft)),transparent)]">
+      <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-14 sm:px-8 sm:py-20 lg:grid-cols-[1.1fr_1fr] lg:py-28">
+        <div className="animate-fade-up">
+          <p className="text-xs font-semibold uppercase tracking-[.14em] text-primary-ink">
+            Hosting that stays out of your way
+          </p>
+          <h1 className="mt-4 font-display text-4xl font-medium leading-[1.08] tracking-tight text-ink sm:text-5xl lg:text-6xl">
+            A server for every idea, priced the way you build it.
+          </h1>
+          <p className="mt-6 max-w-xl text-base leading-relaxed text-ink-soft sm:text-lg">
+            Most hosting asks you to pick from a menu and hope it fits. We started KB Cloud Technologies after one
+            too many midnight plan upgrades, so you choose the vCPU, memory and disk, and watch the monthly price move as
+            you go.
+          </p>
+          <p className="mt-3 max-w-xl text-base leading-relaxed text-ink-soft sm:text-lg">
+            No surprises on the invoice, no dashboard maze, and your data stays in India.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button href="#build" size="lg">
+              Build your server
+            </Button>
+            <Button href="#plans" variant="secondary" size="lg">
+              See plans
+            </Button>
           </div>
-
-          {/* Decorative server illustration */}
-          <div aria-hidden="true" className="hidden lg:block mx-auto w-full max-w-md">
-            <svg viewBox="0 0 400 320" fill="none" className="h-auto w-full">
-              <ellipse cx="200" cy="290" rx="150" ry="14" fill="#1a6ef5" opacity="0.15" />
-              {[0, 1, 2].map((i) => (
-                <g key={i} transform={`translate(0 ${i * 88})`}>
-                  <rect x="60" y="20" width="280" height="72" rx="14" fill="#101f35" stroke="#22344f" strokeWidth="2" />
-                  <rect x="80" y="40" width="120" height="8" rx="4" fill="#22344f" />
-                  <rect x="80" y="58" width="80" height="8" rx="4" fill="#16294a" />
-                  <circle cx="290" cy="46" r="6" fill="#4ade80" />
-                  <circle cx="312" cy="46" r="6" fill="#1a6ef5" />
-                  <rect x="270" y="62" width="50" height="6" rx="3" fill="#22344f" />
-                </g>
-              ))}
-            </svg>
-          </div>
+          <ul className="mt-10 grid gap-3 text-sm text-ink-soft sm:grid-cols-3">
+            {proof.map(({ icon: Icon, text }) => (
+              <li key={text} className="flex items-start gap-2.5">
+                <Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" width={20} height={20} aria-hidden="true" />
+                {text}
+              </li>
+            ))}
+          </ul>
         </div>
 
-        {/* Feature badges */}
-        <div className="mt-14 lg:mt-20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {badges.map((badge) => (
-            <div
-              key={badge.title}
-              className="flex items-center gap-3 rounded-xl border border-navy-border bg-white/5 px-4 py-4 hover:bg-white/10 transition-colors"
-            >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand text-white">
-                <badge.icon className="h-5 w-5" />
-              </span>
-              <span>
-                <span className="block text-sm font-semibold text-white">
-                  {badge.title}
-                </span>
-                <span className="block text-xs text-gray-400">
-                  {badge.subtitle}
-                </span>
-              </span>
+        <div className="relative">
+          <div className="overflow-hidden rounded-2xl bg-primary-soft">
+            <Illustration name="hills" className="h-64 w-full sm:h-80 lg:h-[26rem]" />
+          </div>
+          <div className="absolute -bottom-5 left-4 flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-lift sm:left-8">
+            <CheckCircleIcon className="h-6 w-6 text-ok" width={24} height={24} aria-hidden="true" />
+            <div>
+              <p className="text-sm font-medium text-ink">api-server</p>
+              <p className="text-xs text-ink-muted">Running · health 94 · Mumbai</p>
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </section>

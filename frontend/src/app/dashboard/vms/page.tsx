@@ -1,80 +1,102 @@
+'use client';
+
 import { PlusIcon } from '@heroicons/react/24/outline';
 import PageHeader from '@/components/dashboard/PageHeader';
-import ServerInfoCard, {
-  StatusBadge,
-  WindowsMark,
-} from '@/components/dashboard/ServerInfoCard';
+import Badge from '@/components/ui/Badge';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import EmptyState from '@/components/ui/EmptyState';
+import Skeleton from '@/components/ui/Skeleton';
+import { formatINR } from '@/lib/pricing';
+import { OS_LABEL, REGION_LABEL } from '@/lib/mock/derive';
+import { useFleet } from '@/lib/mock/store';
+import type { Server } from '@/lib/mock/types';
 
-/**
- * Placeholder data — swap with the VM list API later.
- */
-const primaryServer = {
-  name: 'Windows-Server-01',
-  statusLabel: 'Running',
-  ip: '103.221.41.45',
-  uptime: '26 days',
-  os: 'Windows Server 2022',
-};
+const STATUS = {
+  running: { tone: 'ok', label: 'Running' },
+  stopped: { tone: 'neutral', label: 'Stopped' },
+  restarting: { tone: 'warn', label: 'Restarting' },
+} as const;
 
-export default function VirtualMachinesPage() {
+function specs(s: Server): [string, string][] {
+  return [
+    ['IP address', s.ip],
+    ['Operating system', OS_LABEL[s.os]],
+    ['vCPU', `${s.vcpu} cores`],
+    ['RAM', `${s.ramGb} GB`],
+    ['Storage', `${s.storageGb} GB SSD`],
+    ['Region', REGION_LABEL[s.region]],
+    ['Price', `${formatINR(s.priceInrMonth)}/month`],
+    ['Created', new Date(s.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })],
+  ];
+}
+
+export default function ServersPage() {
+  const { servers, status, reload } = useFleet();
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="My Server"
-        subtitle="Manage your cloud servers and connect securely"
+        title="Servers"
+        subtitle="Details for every server on your account."
+        actions={
+          <Button href="/dashboard/deploy" leftIcon={<PlusIcon className="h-4 w-4" width={16} height={16} aria-hidden="true" />}>
+            Deploy a server
+          </Button>
+        }
       />
 
-      <ServerInfoCard server={primaryServer} />
-
-      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-        <h2 className="text-base font-semibold text-gray-900">
-          Server Details
-        </h2>
-        <dl className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { label: 'vCPU', value: '4 cores' },
-            { label: 'RAM', value: '8 GB' },
-            { label: 'Storage', value: '250 GB SSD' },
-            { label: 'Region', value: 'Mumbai (IN)' },
-          ].map((spec) => (
-            <div
-              key={spec.label}
-              className="rounded-xl bg-[#f5f8fc] px-4 py-3"
-            >
-              <dt className="text-xs text-gray-400">{spec.label}</dt>
-              <dd className="mt-1 text-sm font-semibold text-gray-900">
-                {spec.value}
-              </dd>
-            </div>
+      {status === 'loading' && (
+        <div aria-busy="true" aria-label="Loading servers" className="space-y-6">
+          {[0, 1].map((i) => (
+            <Skeleton key={i} className="h-56 rounded-card" />
           ))}
-        </dl>
-        <div className="mt-6 flex flex-wrap items-center gap-3">
-          <WindowsMark className="h-8 w-8" />
-          <StatusBadge label={primaryServer.statusLabel} />
-          <span className="text-sm text-gray-500">
-            Remote desktop (RDP) access is available via the Connect button
-            above.
-          </span>
         </div>
-      </div>
+      )}
 
-      {/* Empty state for additional servers */}
-      <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center shadow-sm">
-        <p className="text-sm font-semibold text-gray-900">
-          Need another server?
-        </p>
-        <p className="mx-auto mt-1 max-w-md text-sm text-gray-500">
-          Additional servers you provision will appear here alongside
-          Windows-Server-01.
-        </p>
-        <button
-          type="button"
-          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#1a6ef5] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#0f57d0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1a6ef5] focus-visible:ring-offset-2"
-        >
-          <PlusIcon className="h-4 w-4" />
-          New Server
-        </button>
-      </div>
+      {status === 'error' && (
+        <Card role="alert" className="flex flex-wrap items-center justify-between gap-4 !border-crit/30 !bg-crit-soft">
+          <p className="font-medium text-crit">Could not load your servers</p>
+          <Button variant="secondary" onClick={reload}>
+            Retry
+          </Button>
+        </Card>
+      )}
+
+      {status === 'ready' && servers.length === 0 && (
+        <EmptyState
+          title="No servers yet"
+          description="Your first one takes about a minute."
+          action={<Button href="/dashboard/deploy">Deploy a server</Button>}
+        />
+      )}
+
+      {status === 'ready' &&
+        servers.map((s) => (
+          <Card key={s.id} as="article" id={`server-${s.id}`} aria-labelledby={`vm-${s.id}`} tabIndex={-1} className="scroll-mt-24">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 id={`vm-${s.id}`} className="font-display text-xl font-medium text-ink">
+                {s.name}
+              </h2>
+              <div className="flex items-center gap-3">
+                <Badge tone={STATUS[s.status].tone} dot>
+                  {STATUS[s.status].label}
+                </Badge>
+                <Button size="sm" variant="secondary" href={`/dashboard/monitoring?server=${s.id}`}>
+                  Monitoring
+                </Button>
+              </div>
+            </div>
+            <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {specs(s).map(([k, v]) => (
+                <div key={k} className="rounded-lg bg-surface-2 px-4 py-3">
+                  <dt className="text-xs text-ink-muted">{k}</dt>
+                  <dd className="mt-1 text-sm font-medium tabular-nums text-ink">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </Card>
+        ))}
     </div>
   );
 }

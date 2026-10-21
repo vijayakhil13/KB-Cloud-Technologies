@@ -1,140 +1,124 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Menu } from '@headlessui/react';
 import {
   ArrowRightOnRectangleIcon,
-  Bars3Icon,
   BellIcon,
   ChevronDownIcon,
+  MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
-import { useAuth } from '@/lib/auth/useAuth';
+import ThemeToggle from '@/components/ui/ThemeToggle';
+import { usePalette } from '@/components/ui/CommandPalette';
 import { authService } from '@/lib/api/authService';
+import { useFleet } from '@/lib/mock/store';
+import { cn } from '@/lib/cn';
+import { useCurrentUser } from './RequireAuth';
+import { Logo } from './Sidebar';
 
-/**
- * Dashboard header: mobile menu toggle, notification bell and user menu with logout.
- */
-export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
-  const { user } = useAuth();
+/** Dashboard header: palette trigger, theme toggle, alerts bell and the signed-in user menu. */
+export default function Header() {
+  const user = useCurrentUser();
   const router = useRouter();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const { setOpen } = usePalette();
+  const { alerts } = useFleet();
   const [loggingOut, setLoggingOut] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
 
-  const fullName = user
-    ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email
-    : 'Account';
+  const openCount = alerts.filter((a) => a.state === 'open' && a.severity !== 'ok').length;
+  const fullName = user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.email : 'Account';
   const initials = user
-    ? (
-        `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}` ||
-        user.email[0]
-      ).toUpperCase()
+    ? (`${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}` || user.email[0]).toUpperCase()
     : '?';
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onClick = (e: MouseEvent) => {
-      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuOpen(false);
-    };
-    document.addEventListener('mousedown', onClick);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onClick);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [menuOpen]);
 
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
       await authService.logout();
     } catch {
-      // token is cleared in a finally block regardless
+      // the token is cleared in a finally block regardless
     }
     router.push('/auth/login');
   };
 
   return (
-    <header className="sticky top-0 z-20 border-b border-gray-100 bg-white">
-      <div className="flex h-16 items-center gap-2 px-4 sm:px-6 lg:px-8">
-        <button
-          type="button"
-          onClick={onMenuClick}
-          aria-label="Open menu"
-          aria-controls="dashboard-sidebar"
-          className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand lg:hidden"
-        >
-          <Bars3Icon className="h-6 w-6" aria-hidden="true" />
-        </button>
+    <header className="sticky top-0 z-20 border-b border-border/60 bg-bg/80 backdrop-blur">
+      <div className="flex h-16 items-center gap-2 px-5 sm:px-8">
+        <Logo compact className="md:hidden" />
 
         <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            aria-label="Search and commands"
+            className="hidden h-10 items-center gap-2 rounded-pill border border-border bg-surface px-4 text-sm text-ink-muted transition hover:bg-surface-2 md:inline-flex"
+          >
+            <MagnifyingGlassIcon className="h-4 w-4" width={16} height={16} aria-hidden="true" />
+            Search
+            <kbd className="rounded-md bg-surface-2 px-1.5 py-0.5 text-xs text-ink-soft">Ctrl K</kbd>
+          </button>
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            aria-label="Search and commands"
+            className="grid h-10 w-10 place-items-center rounded-pill border border-border bg-surface text-ink-soft transition hover:bg-surface-2 md:hidden"
+          >
+            <MagnifyingGlassIcon className="h-5 w-5" width={20} height={20} aria-hidden="true" />
+          </button>
+
+          <ThemeToggle />
+
           <Link
             href="/dashboard/alerts"
-            aria-label="Notifications, 2 unread"
-            className="relative rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            aria-label={openCount ? `Alerts, ${openCount} open` : 'Alerts'}
+            className="relative grid h-10 w-10 place-items-center rounded-pill border border-border bg-surface text-ink-soft transition hover:bg-surface-2"
           >
-            <BellIcon className="h-6 w-6" aria-hidden="true" />
-            <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white">
-              2
-            </span>
+            <BellIcon className="h-5 w-5" width={20} height={20} aria-hidden="true" />
+            {openCount > 0 && (
+              <span
+                aria-hidden="true"
+                className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-pill bg-crit-soft px-1 text-[11px] font-semibold tabular-nums text-crit ring-2 ring-bg"
+              >
+                {openCount}
+              </span>
+            )}
           </Link>
 
-          <div className="relative" ref={menuRef}>
-            <button
-              type="button"
-              onClick={() => setMenuOpen((v) => !v)}
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
+          <Menu as="div" className="relative">
+            <Menu.Button
               aria-label="User menu"
-              className="flex items-center gap-3 rounded-xl py-1.5 pl-1.5 pr-2 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              className="flex min-h-11 items-center gap-2 rounded-pill border border-border bg-surface py-1 pl-1 pr-3 transition hover:bg-surface-2"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand">
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-primary-soft text-sm font-semibold text-primary-ink">
                 {initials}
               </span>
-              <span className="hidden text-left sm:block">
-                <span className="block max-w-[10rem] truncate text-sm font-semibold text-gray-900">
-                  {fullName}
-                </span>
-                <span className="block text-xs capitalize text-gray-400">
-                  {user?.role?.toLowerCase() ?? 'client'}
-                </span>
-              </span>
-              <ChevronDownIcon
-                className="hidden h-4 w-4 text-gray-400 sm:block"
-                aria-hidden="true"
-              />
-            </button>
-
-            {menuOpen && (
-              <div
-                role="menu"
-                className="absolute right-0 mt-2 w-56 rounded-xl border border-gray-100 bg-white p-1 shadow-lg"
-              >
-                <div className="border-b border-gray-100 px-3 py-2">
-                  <p className="truncate text-sm font-medium text-gray-900">
-                    {fullName}
-                  </p>
-                  {user?.email ? (
-                    <p className="truncate text-xs text-gray-500">{user.email}</p>
-                  ) : null}
-                </div>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={handleLogout}
-                  disabled={loggingOut}
-                  className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:opacity-60"
-                >
-                  <ArrowRightOnRectangleIcon className="h-4 w-4" aria-hidden="true" />
-                  {loggingOut ? 'Signing out…' : 'Log out'}
-                </button>
+              <span className="hidden max-w-[10rem] truncate text-sm font-medium text-ink sm:block">{fullName}</span>
+              <ChevronDownIcon className="hidden h-4 w-4 text-ink-muted sm:block" width={16} height={16} aria-hidden="true" />
+            </Menu.Button>
+            <Menu.Items className="absolute right-0 mt-2 w-60 rounded-xl border border-border bg-surface p-1 shadow-lift focus:outline-none">
+              <div className="border-b border-border px-3 py-2">
+                <p className="truncate text-sm font-medium text-ink">{fullName}</p>
+                {user?.email && <p className="truncate text-xs text-ink-muted">{user.email}</p>}
               </div>
-            )}
-          </div>
+              <Menu.Item>
+                {({ active }) => (
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    disabled={loggingOut}
+                    className={cn(
+                      'mt-1 flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-sm text-ink disabled:opacity-60',
+                      active && 'bg-primary-soft',
+                    )}
+                  >
+                    <ArrowRightOnRectangleIcon className="h-4 w-4" width={16} height={16} aria-hidden="true" />
+                    {loggingOut ? 'Signing out...' : 'Log out'}
+                  </button>
+                )}
+              </Menu.Item>
+            </Menu.Items>
+          </Menu>
         </div>
       </div>
     </header>

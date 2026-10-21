@@ -1,4 +1,4 @@
-# Cloud Hosting Platform Frontend
+# KB Cloud Technologiesing Platform Frontend
 
 This is the frontend application for the cloud hosting platform, built with Next.js 13+, React 18, and TypeScript.
 
