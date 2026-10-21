@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 'use client';
 
-=======
->>>>>>> f0b1ebd36e96d97161eb04c8748b2ad53a6d8e57
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 

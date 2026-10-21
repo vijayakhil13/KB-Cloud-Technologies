@@ -5,11 +5,7 @@
  */
 
 export interface User {
-<<<<<<< HEAD
   id: string | number;
-=======
-  id: number;
->>>>>>> f0b1ebd36e96d97161eb04c8748b2ad53a6d8e57
   email: string;
   firstName: string;
   lastName: string;
