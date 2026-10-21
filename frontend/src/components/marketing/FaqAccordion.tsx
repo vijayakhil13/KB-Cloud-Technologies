@@ -51,7 +51,7 @@ export default function FaqAccordion() {
               <button
                 type="button"
                 onClick={() => setOpenIndex(isOpen ? null : index)}
-                className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+                className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
                 aria-expanded={isOpen}
               >
                 <span className="text-sm font-semibold text-gray-900">

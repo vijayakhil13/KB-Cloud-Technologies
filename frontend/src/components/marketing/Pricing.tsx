@@ -84,9 +84,9 @@ function WindowIcon(props: SVGProps<SVGSVGElement>) {
 
 export default function Pricing() {
   return (
-    <section id="pricing" className="bg-white py-16 lg:py-20">
+    <section id="pricing" className="scroll-mt-16 bg-white py-16 lg:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl">
+        <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900">
             Hosting Plans
           </h2>
@@ -95,14 +95,14 @@ export default function Pricing() {
           </p>
         </div>
 
-        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch lg:px-4">
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`rounded-2xl border bg-page overflow-hidden shadow-sm transition-shadow ${
+              className={`flex h-full flex-col rounded-2xl border bg-white overflow-hidden shadow-sm transition-all hover:-translate-y-1 ${
                 plan.popular
-                  ? 'border-brand shadow-md ring-1 ring-brand/20'
-                  : 'border-gray-100 hover:shadow-md'
+                  ? 'border-brand shadow-xl shadow-brand/10 ring-2 ring-brand/30 lg:scale-105'
+                  : 'border-gray-200 hover:shadow-lg'
               }`}
             >
               {plan.popular && (
@@ -110,7 +110,7 @@ export default function Pricing() {
                   Most Popular
                 </div>
               )}
-              <div className="p-6">
+              <div className="flex flex-1 flex-col p-6 sm:p-8">
                 <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
                 <p className="mt-1 text-sm text-gray-500">{plan.audience}</p>
                 <p className="mt-4 flex items-baseline gap-1">
@@ -122,7 +122,7 @@ export default function Pricing() {
 
                 <Link
                   href="/auth/register"
-                  className="mt-5 block rounded-lg bg-brand py-2.5 text-center text-sm font-semibold text-white hover:bg-brand-dark transition-colors"
+                  className={`mt-5 block rounded-lg py-2.5 text-center text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${plan.popular ? 'bg-brand text-white hover:bg-brand-dark' : 'border border-brand text-brand hover:bg-brand-50'}`}
                 >
                   Get Started
                 </Link>
@@ -134,7 +134,7 @@ export default function Pricing() {
                       className="flex items-center gap-3 text-sm text-gray-600"
                     >
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand">
-                        <feature.icon className="h-3.5 w-3.5" />
+                        <feature.icon className="h-4 w-4" />
                       </span>
                       {feature.label}
                     </li>

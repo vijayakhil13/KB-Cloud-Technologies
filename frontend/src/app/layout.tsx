@@ -4,6 +4,8 @@ import { Inter } from 'next/font/google';
 
 const inter = Inter({ subsets: ['latin'] });
 
+export const viewport = { width: 'device-width', initialScale: 1 };
+
 export const metadata: Metadata = {
   title: 'CloudHost — Cloud Server Hosting',
   description:
@@ -17,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.className}>
-      <body className="min-h-screen bg-gray-50">{children}</body>
+      <body className="min-h-screen bg-page text-gray-900 antialiased">{children}</body>
     </html>
   );
 }

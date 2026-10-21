@@ -16,7 +16,7 @@ export default function HomePage() {
         <Services />
         <Pricing />
         <Support />
-        <section className="bg-page pt-2 pb-16 lg:pb-20">
+        <section className="bg-page pb-16 lg:pb-24">
           <FaqAccordion />
         </section>
         <Contact />

@@ -21,7 +21,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="#" className="flex items-center gap-2">
+          <Link href="#" className="flex items-center gap-2 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-brand">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand text-white">
               <CloudIcon className="h-5 w-5" />
             </span>
@@ -36,7 +36,7 @@ export default function Navbar() {
               <Link
                 key={link.label}
                 href={link.href}
-                className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
+                className="text-sm font-medium text-gray-300 hover:text-white transition-colors rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 {link.label}
               </Link>
@@ -47,7 +47,7 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-4">
             <Link
               href="/auth/login"
-              className="text-sm font-medium text-gray-200 hover:text-white transition-colors"
+              className="text-sm font-medium text-gray-200 hover:text-white transition-colors rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >
               Login
             </Link>
@@ -63,9 +63,10 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="lg:hidden inline-flex items-center justify-center rounded-lg p-2 text-gray-300 hover:bg-navy-lighter hover:text-white transition-colors"
+            className="lg:hidden inline-flex items-center justify-center rounded-lg p-2 text-gray-300 hover:bg-navy-lighter hover:text-white transition-colors rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             aria-expanded={open}
             aria-label="Toggle navigation menu"
+            aria-controls="mobile-menu"
           >
             {open ? (
               <XMarkIcon className="h-6 w-6" />
@@ -78,14 +79,14 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="lg:hidden border-t border-navy-border bg-navy">
+        <div id="mobile-menu" className="lg:hidden border-t border-navy-border bg-navy">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 space-y-1">
             {navLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="block rounded-lg px-3 py-2 text-sm font-medium text-gray-300 hover:bg-navy-lighter hover:text-white transition-colors"
+                className="block rounded-lg px-3 py-2 text-sm font-medium text-gray-300 hover:bg-navy-lighter hover:text-white transition-colors rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 {link.label}
               </Link>

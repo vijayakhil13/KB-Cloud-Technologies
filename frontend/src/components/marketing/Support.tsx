@@ -30,9 +30,9 @@ const channels = [
 
 export default function Support() {
   return (
-    <section id="support" className="bg-page py-16 lg:py-20">
+    <section id="support" className="scroll-mt-16 bg-page py-16 lg:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl">
+        <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900">
             Get Support
           </h2>
@@ -46,7 +46,7 @@ export default function Support() {
             <a
               key={channel.title}
               href="#contact"
-              className="group rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all p-6 text-center"
+              className="group rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all p-6 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
             >
               <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-brand group-hover:bg-brand group-hover:text-white transition-colors">
                 <channel.icon className="h-6 w-6" />

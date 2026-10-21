@@ -15,12 +15,23 @@ export const RequireAuth = ({ children }: { children: React.ReactNode }) => {
   }, [loading, user, router]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div
+        className="flex min-h-screen items-center justify-center bg-page"
+        role="status"
+        aria-live="polite"
+      >
+        <div className="flex flex-col items-center gap-3 text-sm text-gray-500">
+          <span className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-brand" />
+          Loading your dashboard…
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
     return null; // Redirect handled in useEffect
   }
 
-  return children;
+  return <>{children}</>;
 };

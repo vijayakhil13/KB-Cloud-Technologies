@@ -25,6 +25,7 @@ export default function LoginForm({
   });
 
   const router = useRouter();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -37,6 +38,7 @@ export default function LoginForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
 
     // Basic validation
     const emailError = !formState.email
@@ -78,12 +80,17 @@ export default function LoginForm({
       router.push('/dashboard');
     } catch (error: any) {
       // Handle API error
-      alert(error?.response?.data?.error || 'Login failed');
+      setSubmitError(error?.response?.data?.error || error?.message || 'Login failed');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+      {submitError && (
+        <div role="alert" className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          {submitError}
+        </div>
+      )}
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-gray-700">
           Email address
@@ -94,14 +101,14 @@ export default function LoginForm({
             name="email"
             type="email"
             autoComplete="email"
-            className={`block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 ${
+            className={`block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand sm:text-sm sm:leading-6 ${
               formState.emailError ? 'ring-red-300' : ''
             }`}
             value={formState.email}
             onChange={handleChange}
           />
           {formState.emailError && (
-            <p className="mt-2 text-sm text-red-600">{formState.emailError}</p>
+            <p role="alert" className="mt-2 text-sm text-red-600">{formState.emailError}</p>
           )}
         </div>
       </div>
@@ -116,14 +123,14 @@ export default function LoginForm({
             name="password"
             type="password"
             autoComplete="current-password"
-            className={`block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 ${
+            className={`block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand sm:text-sm sm:leading-6 ${
               formState.passwordError ? 'ring-red-300' : ''
             }`}
             value={formState.password}
             onChange={handleChange}
           />
           {formState.passwordError && (
-            <p className="mt-2 text-sm text-red-600">{formState.passwordError}</p>
+            <p role="alert" className="mt-2 text-sm text-red-600">{formState.passwordError}</p>
           )}
         </div>
       </div>
@@ -133,7 +140,7 @@ export default function LoginForm({
           <input
             id="remember-me"
             type="checkbox"
-            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+            className="h-4 w-4 text-brand focus:ring-brand border-gray-300 rounded"
           />
           <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
             Remember me
@@ -141,7 +148,7 @@ export default function LoginForm({
         </div>
 
         <div className="text-sm">
-          <a href="/auth/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500">
+          <a href="/auth/forgot-password" className="font-medium text-brand hover:text-brand">
             Forgot password?
           </a>
         </div>
@@ -151,21 +158,21 @@ export default function LoginForm({
         <button
           type="submit"
           disabled={loading}
-          className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-            loading ? 'opacity-50' : ''
+          className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand ${
+            loading ? 'cursor-not-allowed opacity-50' : ''
           }`}
         >
-          Sign in
+          {loading ? 'Signing in…' : 'Sign in'}
         </button>
       </div>
 
       <div className="text-center text-sm text-gray-500">
-        Signing up means you agree to our
-        <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
+        Signing up means you agree to our{" "}
+        <a href="#" className="font-medium text-brand hover:text-brand">
           Terms of Service
         </a>
-        and
-        <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
+        {" "}and{" "}
+        <a href="#" className="font-medium text-brand hover:text-brand">
           Privacy Policy
         </a>
         .

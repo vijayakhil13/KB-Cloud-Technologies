@@ -45,9 +45,9 @@ export default function Contact() {
   }
 
   return (
-    <section id="contact" className="bg-page py-16 lg:py-20">
+    <section id="contact" className="scroll-mt-16 bg-page py-16 lg:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl">
+        <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900">
             Contact Us
           </h2>
@@ -56,7 +56,7 @@ export default function Contact() {
           </p>
         </div>
 
-        <div className="mt-10 grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+        <div className="mt-12 grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
           {/* Form */}
           <div className="lg:col-span-3 rounded-2xl bg-white border border-gray-100 shadow-sm p-6 sm:p-8">
             {submitted ? (
@@ -160,7 +160,7 @@ export default function Contact() {
 
                 <button
                   type="submit"
-                  className="w-full sm:w-auto rounded-lg bg-brand px-8 py-3 text-sm font-semibold text-white hover:bg-brand-dark transition-colors"
+                  className="w-full sm:w-auto rounded-lg bg-brand px-8 py-3 text-sm font-semibold text-white hover:bg-brand-dark transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
                 >
                   Send Message
                 </button>

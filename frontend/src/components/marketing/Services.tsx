@@ -45,9 +45,9 @@ const services = [
 
 export default function Services() {
   return (
-    <section id="services" className="bg-page py-16 lg:py-20">
+    <section id="services" className="scroll-mt-16 bg-page py-16 lg:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl">
+        <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900">
             Our Services
           </h2>
@@ -56,7 +56,7 @@ export default function Services() {
           </p>
         </div>
 
-        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {services.map((service) => (
             <div
               key={service.title}
@@ -73,7 +73,7 @@ export default function Services() {
               </p>
               <a
                 href="#contact"
-                className="mt-auto pt-4 inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-dark transition-colors"
+                className="mt-auto pt-4 inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-dark transition-colors rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 Learn More
                 <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">
