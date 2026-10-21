@@ -1,15 +1,28 @@
+<<<<<<< HEAD
 -- UUIDs use gen_random_uuid() (built into PostgreSQL 13+)
 
 -- Users Table
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+=======
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Users Table
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+>>>>>>> f0b1ebd36e96d97161eb04c8748b2ad53a6d8e57
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     phone_number VARCHAR(20),
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'suspended', 'pending_verification')),
+<<<<<<< HEAD
     role VARCHAR(20) NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'admin', 'super_admin')),
+=======
+    role VARCHAR(20) NOT NULL CHECK (role IN ('customer', 'admin', 'super_admin')),
+>>>>>>> f0b1ebd36e96d97161eb04c8748b2ad53a6d8e57
     email_verified BOOLEAN DEFAULT FALSE,
     mfa_enabled BOOLEAN DEFAULT FALSE,
     failed_login_attempts INTEGER DEFAULT 0,
@@ -31,7 +44,11 @@ CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at);
 
 -- Virtual Machines Table
 CREATE TABLE IF NOT EXISTS virtual_machines (
+<<<<<<< HEAD
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+=======
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+>>>>>>> f0b1ebd36e96d97161eb04c8748b2ad53a6d8e57
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     description TEXT,
@@ -101,7 +118,11 @@ CREATE INDEX IF NOT EXISTS idx_monitoring_metrics_time ON monitoring_metrics(tim
 
 -- Alerts Table
 CREATE TABLE IF NOT EXISTS alerts (
+<<<<<<< HEAD
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+=======
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+>>>>>>> f0b1ebd36e96d97161eb04c8748b2ad53a6d8e57
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     vm_id UUID NULL REFERENCES virtual_machines(id) ON DELETE SET NULL,
     name VARCHAR(100) NOT NULL,
@@ -128,7 +149,11 @@ CREATE INDEX IF NOT EXISTS idx_alerts_metric_type ON alerts(metric_type);
 
 -- Alert Notifications Table
 CREATE TABLE IF NOT EXISTS alert_notifications (
+<<<<<<< HEAD
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+=======
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+>>>>>>> f0b1ebd36e96d97161eb04c8748b2ad53a6d8e57
     alert_id UUID NOT NULL REFERENCES alerts(id) ON DELETE CASCADE,
     triggered_at TIMESTAMP WITH TIME ZONE NOT NULL,
     value_at_trigger DOUBLE PRECISION NOT NULL,
@@ -148,7 +173,11 @@ CREATE INDEX IF NOT EXISTS idx_alert_notifications_resolved_at ON alert_notifica
 
 -- Backup Records Table
 CREATE TABLE IF NOT EXISTS backups (
+<<<<<<< HEAD
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+=======
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+>>>>>>> f0b1ebd36e96d97161eb04c8748b2ad53a6d8e57
     vm_id UUID NOT NULL REFERENCES virtual_machines(id) ON DELETE CASCADE,
     backup_type VARCHAR(20) NOT NULL CHECK (backup_type IN ('full', 'incremental', 'snapshot')),
     status VARCHAR(20) NOT NULL CHECK (status IN ('pending', 'in_progress', 'completed', 'failed', 'cancelled')),
@@ -174,7 +203,11 @@ CREATE INDEX IF NOT EXISTS idx_backups_backup_type ON backups(backup_type);
 
 -- Audit Log Table
 CREATE TABLE IF NOT EXISTS audit_log (
+<<<<<<< HEAD
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+=======
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+>>>>>>> f0b1ebd36e96d97161eb04c8748b2ad53a6d8e57
     user_id UUID NULL REFERENCES users(id) ON DELETE SET NULL,
     action VARCHAR(100) NOT NULL,
     resource_type VARCHAR(50) NOT NULL,
@@ -206,6 +239,7 @@ VALUES (
     'active',
     true
 )
+<<<<<<< HEAD
 ON CONFLICT (email) DO NOTHING;
 
 -- Refresh tokens (used by backend/src/auth/auth.service.js)
@@ -219,3 +253,6 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
 );
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token_hash ON refresh_tokens(token_hash);
+=======
+ON CONFLICT (email) DO NOTHING;
+>>>>>>> f0b1ebd36e96d97161eb04c8748b2ad53a6d8e57

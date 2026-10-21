@@ -140,6 +140,7 @@ router.post('/logout', authenticateToken, async (req, res) => {
 
 router.get('/me', authenticateToken, async (req, res) => {
   try {
+<<<<<<< HEAD
     const result = await db.query(
       'SELECT id, email, first_name, last_name, role, status, created_at, last_login_at FROM users WHERE id = $1',
       [req.user.userId]
@@ -162,6 +163,18 @@ router.get('/me', authenticateToken, async (req, res) => {
         lastLoginAt: row.last_login_at
       }
     });
+=======
+    const user = await db.oneOrNone(
+      'SELECT id, email, first_name, last_name, role, status, created_at, last_login_at FROM users WHERE id = $1',
+      [req.user.userId]
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ user });
+>>>>>>> f0b1ebd36e96d97161eb04c8748b2ad53a6d8e57
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ error: 'Failed to fetch user' });

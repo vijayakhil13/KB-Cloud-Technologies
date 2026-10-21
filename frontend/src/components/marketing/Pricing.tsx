@@ -18,7 +18,11 @@ type Plan = {
   audience: string;
   price: string;
   popular?: boolean;
+<<<<<<< HEAD
   features: { icon: (props: SVGProps<SVGSVGElement>) => React.ReactNode; label: string }[];
+=======
+  features: { icon: typeof CpuChipIcon; label: string }[];
+>>>>>>> f0b1ebd36e96d97161eb04c8748b2ad53a6d8e57
 };
 
 const plans: Plan[] = [
