@@ -8,12 +8,11 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   const reload = useCallback(async () => {
-    if (!getAccessToken()) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
     try {
+      if (!getAccessToken()) {
+        // No access token (cleared/expired storage): the httpOnly refresh cookie may still be valid.
+        await authService.refreshToken();
+      }
       const data = await authService.getMe();
       setUser(data.user);
     } catch {

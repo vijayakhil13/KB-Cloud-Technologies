@@ -8,6 +8,12 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const db = require('../config/database');
+const logger = require('../utils/logger');
+const mailer = require('../utils/mailer');
+
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCK_MINUTES = 15;
+const RESET_TOKEN_MINUTES = 30;
 
 const SALT_ROUNDS = parseInt(process.env.BCRYPT_SALT_ROUNDS || '12', 10);
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'dev_access_secret_change_me';
@@ -35,7 +41,7 @@ const signAccessToken = (user) =>
   );
 
 const signRefreshToken = (user) =>
-  jwt.sign({ userId: user.id }, REFRESH_SECRET, { expiresIn: REFRESH_EXPIRES_IN });
+  jwt.sign({ userId: user.id, jti: crypto.randomUUID() }, REFRESH_SECRET, { expiresIn: REFRESH_EXPIRES_IN });
 
 async function storeRefreshToken(userId, refreshToken) {
   const decoded = jwt.decode(refreshToken);
@@ -75,8 +81,26 @@ async function login({ email, password }) {
     throw new Error('Invalid email or password');
   }
 
+  if (user.locked_until && new Date(user.locked_until) > new Date()) {
+    const err = new Error('Account temporarily locked. Try again later.');
+    err.code = 'ACCOUNT_LOCKED';
+    throw err;
+  }
+
   const passwordMatches = await bcrypt.compare(password, user.password_hash);
   if (!passwordMatches) {
+    // Lockout bookkeeping must never turn a 401 into a 500.
+    try {
+      await db.query(
+        `UPDATE users SET failed_login_attempts = COALESCE(failed_login_attempts, 0) + 1,
+           locked_until = CASE WHEN COALESCE(failed_login_attempts, 0) + 1 >= $2
+             THEN NOW() + ($3 || ' minutes')::interval ELSE locked_until END
+         WHERE id = $1`,
+        [user.id, MAX_FAILED_ATTEMPTS, String(LOCK_MINUTES)]
+      );
+    } catch (e) {
+      logger.warn(`Could not record failed login attempt: ${e.message}`);
+    }
     throw new Error('Invalid email or password');
   }
 
@@ -84,7 +108,10 @@ async function login({ email, password }) {
     throw new Error('Account is not active');
   }
 
-  await db.query('UPDATE users SET last_login_at = NOW() WHERE id = $1', [user.id]);
+  await db.query(
+    'UPDATE users SET last_login_at = NOW(), failed_login_attempts = 0, locked_until = NULL WHERE id = $1',
+    [user.id]
+  );
 
   const accessToken = signAccessToken(user);
   const refreshToken = signRefreshToken(user);
@@ -123,10 +150,14 @@ async function refreshAccessToken(refreshToken) {
     throw new Error('Invalid refresh token or user no longer active');
   }
 
-  // Rotate: revoke the used token, issue a new pair.
-  await db.query('UPDATE refresh_tokens SET revoked_at = NOW() WHERE id = $1', [
-    stored.rows[0].id
-  ]);
+  // Rotate atomically: only one concurrent request can revoke the token.
+  const revoked = await db.query(
+    'UPDATE refresh_tokens SET revoked_at = NOW() WHERE id = $1 AND revoked_at IS NULL RETURNING id',
+    [stored.rows[0].id]
+  );
+  if (revoked.rows.length === 0) {
+    throw new Error('Invalid refresh token or user no longer active');
+  }
 
   const accessToken = signAccessToken(user);
   const newRefreshToken = signRefreshToken(user);
@@ -146,7 +177,87 @@ function verifyAccessToken(token) {
   return jwt.verify(token, ACCESS_SECRET);
 }
 
+/**
+ * Creates a reset token and emails it. Callers always send the same response
+ * regardless of the result. Errors are thrown for the caller to log.
+ */
+async function forgotPassword(email) {
+  const result = await db.query('SELECT id, email, status FROM users WHERE email = $1', [email]);
+  const user = result.rows[0];
+  if (!user || user.status !== 'active') return false;
+
+  const token = crypto.randomBytes(32).toString('hex');
+  await db.query(
+    'UPDATE password_resets SET used_at = NOW() WHERE user_id = $1 AND used_at IS NULL',
+    [user.id]
+  );
+  await db.query(
+    `INSERT INTO password_resets (user_id, token_hash, expires_at)
+     VALUES ($1, $2, NOW() + ($3 || ' minutes')::interval)`,
+    [user.id, hashToken(token), String(RESET_TOKEN_MINUTES)]
+  );
+
+  const base = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, '');
+  await mailer.sendPasswordResetEmail(
+    user.email,
+    `${base}/auth/reset-password?token=${token}`,
+    RESET_TOKEN_MINUTES
+  );
+  return true;
+}
+
+/**
+ * @throws Error with code INVALID_OR_EXPIRED_TOKEN when the token is unknown/expired/used.
+ */
+async function resetPassword(token, newPassword) {
+  const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+  const client = await db.connect();
+  let email;
+  try {
+    await client.query('BEGIN');
+    // Claim the token atomically (prevents double use under concurrency).
+    const claimed = await client.query(
+      `UPDATE password_resets SET used_at = NOW()
+       WHERE token_hash = $1 AND used_at IS NULL AND expires_at > NOW()
+       RETURNING user_id`,
+      [hashToken(token)]
+    );
+    if (claimed.rows.length === 0) {
+      const err = new Error('Invalid or expired reset token');
+      err.code = 'INVALID_OR_EXPIRED_TOKEN';
+      throw err;
+    }
+    const userId = claimed.rows[0].user_id;
+
+    const updated = await client.query(
+      `UPDATE users SET password_hash = $1, updated_at = NOW(),
+         failed_login_attempts = 0, locked_until = NULL
+       WHERE id = $2 RETURNING email`,
+      [passwordHash, userId]
+    );
+    email = updated.rows[0] && updated.rows[0].email;
+    await client.query(
+      'UPDATE refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL',
+      [userId]
+    );
+    await client.query('COMMIT');
+  } catch (err) {
+    try { await client.query('ROLLBACK'); } catch (_) { /* ignore */ }
+    throw err;
+  } finally {
+    client.release();
+  }
+
+  if (email) {
+    mailer.sendPasswordChangedEmail(email).catch((e) =>
+      logger.warn(`Password-changed email failed: ${e.message}`)
+    );
+  }
+}
+
 module.exports = {
+  forgotPassword,
+  resetPassword,
   register,
   login,
   refreshAccessToken,

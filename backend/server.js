@@ -1,13 +1,14 @@
+const dotenv = require('dotenv');
+dotenv.config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
-const dotenv = require('dotenv');
 const authRoutes = require('./src/auth/auth.routes');
 const { errorHandler } = require('./src/middleware/errorHandler');
-const db = require('./src/config/database');  // <-- FIXED: Import database connection
-
-dotenv.config();
+const db = require('./src/config/database');
+const { runMigrations } = require('./src/config/migrate');
+const logger = require('./src/utils/logger');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -42,20 +43,26 @@ app.use(errorHandler);
 
 const startServer = async () => {
   try {
-    await db.query('SELECT 1');  // <-- NOW WORKS: db is imported
-    console.log('Database connection established');
-
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log(`Environment: ${process.env.NODE_ENV}`);
-      console.log(`Auth endpoints: http://localhost:${PORT}/api/auth`);
-    });
+    await db.query('SELECT 1');
+    logger.info('Database connection established');
   } catch (error) {
-    console.error('Failed to start server:', error);
+    logger.error(`Database connection failed: ${error.message}. Check DB_* values in backend/.env and that PostgreSQL is running.`);
     process.exit(1);
   }
+
+  try {
+    const applied = await runMigrations(db);
+    logger.info(applied.length ? `Migrations applied: ${applied.join(', ')}` : 'Database schema up to date');
+  } catch (error) {
+    logger.error(`${error.message}. Fix the database or run the SQL in backend/migrations manually (see README).`);
+    process.exit(1);
+  }
+
+  app.listen(PORT, () => {
+    logger.info(`Server running on port ${PORT} (${process.env.NODE_ENV})`);
+  });
 };
 
-startServer();
+if (require.main === module) startServer();
 
 module.exports = app;

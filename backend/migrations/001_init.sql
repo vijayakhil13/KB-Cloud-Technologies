@@ -27,3 +27,13 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
 
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token_hash ON refresh_tokens(token_hash);
+
+-- Compatibility: databases created from the older database_schema.sql may lack some of these.
+-- All statements are idempotent.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_number           VARCHAR(20);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified         BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts  INTEGER DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until           TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at          TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at             TIMESTAMPTZ DEFAULT NOW();
+ALTER TABLE refresh_tokens ADD COLUMN IF NOT EXISTS revoked_at    TIMESTAMPTZ;

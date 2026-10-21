@@ -37,25 +37,75 @@ function setToken(token: string | null) {
   }
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = getAccessToken();
-  const res = await fetch(`${API_URL}${path}`, {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  });
+export class ApiError extends Error {
+  status: number;
+  code?: string;
+  constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
+  }
+}
 
-  const data = await res.json().catch(() => ({}));
+interface ErrorBody {
+  error?: string;
+  code?: string;
+  errors?: { msg?: string }[];
+}
+
+let refreshing: Promise<void> | null = null;
+
+async function doFetch(path: string, options: RequestInit): Promise<Response> {
+  const token = getAccessToken();
+  try {
+    return await fetch(`${API_URL}${path}`, {
+      ...options,
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+      },
+    });
+  } catch {
+    throw new ApiError("Can't reach the server. Is the backend running on port 5000?", 0, 'NETWORK');
+  }
+}
+
+async function request<T>(path: string, options: RequestInit = {}, retried = false): Promise<T> {
+  const res = await doFetch(path, options);
+  const data = (await res.json().catch(() => ({}))) as ErrorBody & T;
 
   if (!res.ok) {
+    // One silent refresh + retry when the 30-minute access token has expired.
+    if (res.status === 401 && data.code === 'TOKEN_EXPIRED' && !retried && !path.startsWith('/auth/')) {
+      try {
+        refreshing = refreshing ?? authService.refreshToken().then(() => undefined);
+        await refreshing;
+      } catch {
+        setToken(null);
+        throw new ApiError('Your session has expired. Please sign in again.', 401, 'TOKEN_EXPIRED');
+      } finally {
+        refreshing = null;
+      }
+      return request<T>(path, options, true);
+    }
+
     // express-validator returns { errors: [{ msg, ... }] }
-    const message =
-      data.error || data.errors?.[0]?.msg || `Request failed (${res.status})`;
-    throw new Error(message);
+    const serverMessage = data.error || data.errors?.[0]?.msg;
+    let message: string;
+    if (res.status >= 500) {
+      message = 'Something went wrong on our side, please try again';
+    } else if (res.status === 401 && path === '/auth/login') {
+      message =
+        serverMessage && !/invalid email or password/i.test(serverMessage)
+          ? serverMessage
+          : 'Incorrect email or password';
+    } else {
+      message = serverMessage || `Request failed (${res.status})`;
+    }
+    throw new ApiError(message, res.status, data.code);
   }
 
   return data as T;
@@ -101,6 +151,18 @@ export const authService = {
     setToken(data.accessToken);
     return data;
   },
+
+  forgotPassword: async (email: string): Promise<{ message: string }> =>
+    request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  resetPassword: async (token: string, password: string): Promise<{ message: string }> =>
+    request('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, password }),
+    }),
 
   getMe: async (): Promise<{ user: User }> => request('/auth/me'),
 };

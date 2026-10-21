@@ -76,7 +76,7 @@ export default function LoginForm() {
           />
           Remember me
         </label>
-        <Link href="/#contact" className="font-medium text-primary-ink underline-offset-4 hover:underline">
+        <Link href="/auth/forgot-password" className="font-medium text-primary-ink underline-offset-4 hover:underline">
           Forgot password?
         </Link>
       </div>
