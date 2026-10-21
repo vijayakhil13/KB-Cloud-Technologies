@@ -1,9 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 const authRoutes = require('./src/auth/auth.routes');
 const { errorHandler } = require('./src/middleware/errorHandler');
+const db = require('./src/config/database');  // <-- FIXED: Import database connection
 
 dotenv.config();
 
@@ -15,6 +17,7 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
+app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -39,7 +42,7 @@ app.use(errorHandler);
 
 const startServer = async () => {
   try {
-    await db.query('SELECT 1');
+    await db.query('SELECT 1');  // <-- NOW WORKS: db is imported
     console.log('Database connection established');
 
     app.listen(PORT, () => {

@@ -6,6 +6,19 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        brand: {
+          DEFAULT: '#1a6ef5',
+          dark: '#0f57d0',
+          50: '#eef4fe',
+          100: '#dce8fd',
+        },
+        navy: {
+          DEFAULT: '#0b1626',
+          light: '#101f35',
+          lighter: '#16294a',
+          border: '#22344f',
+        },
+        page: '#f5f8fc',
         primary: {
           50: '#eff6ff',
           100: '#dbeafe',

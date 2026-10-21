@@ -1,86 +1,41 @@
-import Link from 'next/link';
-import { useAuth } from '@/lib/auth/useAuth';
+import { BellIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 
+/**
+ * Page-agnostic dashboard header: notification bell + user block.
+ * Static placeholder user — swap for the authenticated user later.
+ */
 export default function Header() {
-  const { user } = useAuth();
-
   return (
-    <header className="bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link href="/" className="text-xl font-semibold text-gray-900">
-              Cloud Hosting
-            </Link>
-          </div>
-          <div className="hidden md:flex md:items-center md:space-x-6">
-            {user ? (
-              <>
-                <Link
-                  href="/dashboard/vms"
-                  className="text-gray-500 hover:text-gray-900"
-                >
-                  Virtual Machines
-                </Link>
-                <Link
-                  href="/dashboard/monitoring"
-                  className="text-gray-500 hover:text-gray-900"
-                >
-                  Monitoring
-                </Link>
-                <Link
-                  href="/dashboard/alerts"
-                  className="text-gray-500 hover:text-gray-900"
-                >
-                  Alerts
-                </Link>
-                <Link
-                  href="/dashboard/profile"
-                  className="text-gray-500 hover:text-gray-900"
-                >
-                  Profile
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/auth/login"
-                  className="text-gray-500 hover:text-gray-900"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/auth/register"
-                  className="ml-4 text-gray-500 hover:text-gray-900"
-                >
-                  Sign Up
-                </Link>
-              </>
-            )}
-          </div>
-          <div className="md:hidden">
-            {/* Mobile menu button would go here */}
-            <button className="p-2 rounded-lg text-gray-500 hover:bg-gray-100">
-              {/* Menu icon */}
-            </button>
-          </div>
-          {user && (
-            <div className="ml-4 flex items-center md:ml-6">
-              <div className="flex-shrink-0">
-                {/* User avatar placeholder */}
-                <div className="h-8 w-8 bg-gray-300 rounded-full"></div>
-              </div>
-              <div className="ml-3">
-                <div className="text-base font-medium text-gray-900">
-                  {user?.firstName || 'User'}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {user?.email}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+    <header className="sticky top-0 z-10 border-b border-gray-100 bg-white">
+      <div className="flex h-16 items-center justify-end gap-2 px-4 sm:px-6 lg:px-8">
+        {/* Notifications */}
+        <button
+          type="button"
+          title="Notifications"
+          className="relative rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1a6ef5]"
+        >
+          <BellIcon className="h-6 w-6" />
+          <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white">
+            2
+          </span>
+        </button>
+
+        {/* User block */}
+        <button
+          type="button"
+          className="flex items-center gap-3 rounded-xl py-1.5 pl-1.5 pr-2 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1a6ef5]"
+        >
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-[#1a6ef5]">
+            RK
+          </span>
+          <span className="hidden text-left sm:block">
+            <span className="block text-sm font-semibold text-gray-900">
+              Ramesh Kumar
+            </span>
+            <span className="block text-xs text-gray-400">Client</span>
+          </span>
+          <ChevronDownIcon className="hidden h-4 w-4 text-gray-400 sm:block" />
+        </button>
       </div>
     </header>
   );

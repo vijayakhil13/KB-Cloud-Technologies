@@ -5,8 +5,9 @@ import { Inter } from 'next/font/google';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Cloud Hosting Platform',
-  description: 'Manage your cloud servers and IT infrastructure',
+  title: 'CloudHost — Cloud Server Hosting',
+  description:
+    'Windows & Linux cloud servers, remote desktops and business application hosting for your growing business.',
 };
 
 export default function RootLayout({

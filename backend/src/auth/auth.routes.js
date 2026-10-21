@@ -3,6 +3,7 @@ const router = express.Router();
 const AuthService = require('./auth.service');
 const { authenticateToken, authorizeRole } = require('./auth.middleware');
 const { body, validationResult } = require('express-validator');
+const db = require('../config/database');
 
 const validateRegister = [
   body('email').isEmail().normalizeEmail(),
